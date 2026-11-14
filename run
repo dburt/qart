@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Start QArt Studio and open it in the default browser.
+#   ./run            start on port 8765 and open the browser
+#   ./run --no-open  start only
+#   PORT=9000 ./run  use another port
+set -euo pipefail
+cd "$(dirname "$0")"
+
+PORT="${PORT:-8765}"
+URL="http://127.0.0.1:${PORT}/"
+OPEN=1
+for a in "$@"; do case "$a" in --no-open) OPEN=0 ;; -h|--help) sed -n 2,5p "$0" | sed 's/^# \{0,1\}//'; exit 0 ;; esac; done
+
+# 1. environment
+if [ ! -x .venv/bin/python ]; then
+  echo "creating .venv"
+  if command -v uv >/dev/null; then uv venv -q .venv --python 3.13 || uv venv -q .venv
+  else python3 -m venv .venv; fi
+fi
+PY=.venv/bin/python
+if ! $PY -c "import fastapi, uvicorn, multipart, zxingcpp, pyzbar, cv2, numpy, PIL" 2>/dev/null; then
+  echo "installing dependencies"
+  if command -v uv >/dev/null; then uv pip install -q --python $PY numpy pillow zxing-cpp pyzbar opencv-contrib-python-headless fastapi uvicorn python-multipart
+  else $PY -m pip install -q numpy pillow zxing-cpp pyzbar opencv-contrib-python-headless fastapi uvicorn python-multipart; fi
+fi
+
+# 2. WeChat decoder models (optional; falls back to the classical detector without them)
+if [ ! -f models/detect.onnx ] || [ ! -f models/sr.onnx ]; then
+  if command -v gh >/dev/null; then
+    echo "fetching WeChat ONNX models"
+    (cd models && gh release download -R shimat/caffe-ssd-to-onnx -p detect.onnx -p sr.onnx --clobber) || echo "  (skipped: see models/README.md)"
+  else
+    echo "note: models/detect.onnx missing; WeChat decoder will run without its neural detector (see models/README.md)"
+  fi
+fi
+
+# 3. already running? just open it
+if curl -sf "${URL}api/meta" >/dev/null 2>&1; then
+  echo "QArt Studio already running at ${URL}"
+  [ "$OPEN" = 1 ] && "$0" --open-only "$URL"
+  exit 0
+fi
+
+open_browser() {
+  local url="$1"
+  if command -v xdg-open >/dev/null; then xdg-open "$url" >/dev/null 2>&1 && return
+  elif command -v open >/dev/null; then open "$url" && return
+  fi
+  $PY -m webbrowser -t "$url" >/dev/null 2>&1 || echo "open ${url} in your browser"
+}
+case "${1:-}" in --open-only) open_browser "$2"; exit 0 ;; esac
+
+# 4. open the browser once the server answers, then run the server in the foreground (Ctrl-C stops it)
+if [ "$OPEN" = 1 ]; then
+  ( for _ in $(seq 1 100); do
+      if curl -sf "${URL}api/meta" >/dev/null 2>&1; then open_browser "$URL"; exit 0; fi
+      sleep 0.2
+    done; echo "server did not come up; open ${URL} manually" ) &
+fi
+echo "QArt Studio → ${URL}  (Ctrl-C to stop)"
+export QART_PORT="$PORT"
+exec $PY -m app.server

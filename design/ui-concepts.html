@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QArt Studio — UI concepts</title>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --panel: #fffdf8;
+    --panel-2: #efebe2;
+    --ink: #1c1b18;
+    --ink-2: #5b574e;
+    --ink-3: #8c877b;
+    --line: #dcd6c8;
+    --accent: #1f4e9c;
+    --accent-ink: #ffffff;
+    --hot: #d9472b;
+    --ok: #2f8f5b;
+    --warn: #c98a12;
+    --block-a: #cfe0f7;
+    --block-b: #f7dfc9;
+    --block-c: #d9f0d6;
+    --block-d: #efd6f2;
+    --radius: 10px;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15161a; --panel: #1d1f25; --panel-2: #24272f; --ink: #ecebe6; --ink-2: #b4b1a8; --ink-3: #7b786f;
+      --line: #32363f; --accent: #6ea0ff; --accent-ink: #0b1a33; --hot: #ff7a5c; --ok: #5ccb8a; --warn: #e6b04a;
+      --block-a: #243a5c; --block-b: #5a3a26; --block-c: #27492b; --block-d: #4a2c4f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15161a; --panel: #1d1f25; --panel-2: #24272f; --ink: #ecebe6; --ink-2: #b4b1a8; --ink-3: #7b786f;
+    --line: #32363f; --accent: #6ea0ff; --accent-ink: #0b1a33; --hot: #ff7a5c; --ok: #5ccb8a; --warn: #e6b04a;
+    --block-a: #243a5c; --block-b: #5a3a26; --block-c: #27492b; --block-d: #4a2c4f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.45; padding: 0 16px 80px; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+  h1 { font-size: 28px; }
+  h2 { font-size: 20px; }
+  h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; }
+  p { margin: 0; }
+  a { color: var(--accent); }
+  code, .mono { font-family: var(--mono); font-size: 12px; }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  header.page { padding: 36px 0 20px; display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid var(--line); }
+  header.page .lede { color: var(--ink-2); max-width: 640px; margin-top: 8px; }
+  nav.toc { display: flex; gap: 8px; flex-wrap: wrap; }
+  nav.toc a { text-decoration: none; padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); background: var(--panel); font-size: 13px; }
+  section.concept { padding: 44px 0 10px; }
+  section.concept > .intro { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 18px; }
+  section.concept > .intro .tag { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+  section.concept > .intro p { color: var(--ink-2); max-width: 760px; }
+
+  /* app frame */
+  .app { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 0 rgba(0,0,0,.03), 0 12px 40px -24px rgba(0,0,0,.25); }
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); flex-wrap: wrap; }
+  .topbar .name { font-weight: 600; }
+  .topbar .url { flex: 1 1 260px; display: flex; align-items: center; gap: 8px; }
+  .topbar .url input { flex: 1; min-width: 0; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--ink-2); }
+  .chip.ok { border-color: var(--ok); color: var(--ok); }
+  .chip.hot { border-color: var(--hot); color: var(--hot); }
+  .chip.warn { border-color: var(--warn); color: var(--warn); }
+  .cols { display: grid; grid-template-columns: 240px 1fr 300px; min-height: 560px; }
+  .pane { padding: 14px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 16px; }
+  .pane:last-child { border-right: 0; }
+  .center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 18px; background: repeating-conic-gradient(var(--panel-2) 0 25%, transparent 0 50%) 0 0 / 20px 20px; }
+  .canvas-frame { background: #fff; padding: 12px; border-radius: 6px; box-shadow: 0 2px 20px -8px rgba(0,0,0,.35); line-height: 0; }
+  .canvas-frame canvas { image-rendering: pixelated; width: 420px; max-width: 70vw; height: auto; }
+  .viewtabs { display: flex; gap: 2px; background: var(--panel-2); padding: 3px; border-radius: 8px; border: 1px solid var(--line); }
+  .viewtabs button { border: 0; background: transparent; padding: 5px 10px; border-radius: 6px; color: var(--ink-2); cursor: pointer; font: inherit; font-size: 13px; }
+  .viewtabs button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; border: 1px solid rgba(0,0,0,.15); }
+
+  /* controls */
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label, .row label { font-size: 12px; color: var(--ink-2); display: flex; justify-content: space-between; }
+  .field label output { font-family: var(--mono); color: var(--ink); }
+  input[type=text], select { font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .seg button { font: inherit; font-size: 12px; padding: 5px 9px; border: 0; background: var(--panel); color: var(--ink-2); cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: 0; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .seg.wrap { flex-wrap: wrap; }
+  .btn { font: inherit; font-size: 13px; padding: 6px 11px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.small { font-size: 12px; padding: 4px 8px; }
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+  .toggle input { accent-color: var(--accent); }
+  .thumb { width: 100%; aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); display: grid; place-items: center; position: relative; overflow: hidden; }
+  .thumb canvas { width: 100%; height: 100%; image-rendering: pixelated; }
+  .arrows { display: grid; grid-template-columns: repeat(3, 28px); gap: 3px; justify-content: center; }
+  .arrows button { height: 28px; }
+  .arrows .mid { background: var(--panel-2); border-radius: 6px; }
+
+  /* stages accordion */
+  .stage { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .stage > summary { list-style: none; cursor: pointer; padding: 9px 12px; display: flex; align-items: center; gap: 10px; background: var(--panel-2); font-weight: 600; }
+  .stage > summary::-webkit-details-marker { display: none; }
+  .stage > summary .n { font-family: var(--mono); font-size: 11px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); }
+  .stage > summary .sub { margin-left: auto; font-weight: 400; font-size: 12px; color: var(--ink-3); font-family: var(--mono); }
+  .stage .body { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .radio { display: flex; flex-direction: column; gap: 6px; }
+  .radio label { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; cursor: pointer; justify-content: flex-start; color: var(--ink); }
+  .radio label small { display: block; color: var(--ink-3); font-size: 11px; }
+  .radio input { margin-top: 3px; accent-color: var(--accent); }
+  .maskgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .maskgrid button { aspect-ratio: 1; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); cursor: pointer; font-family: var(--mono); font-size: 11px; color: var(--ink-2); position: relative; }
+  .maskgrid button[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: -1px; color: var(--ink); }
+  .maskgrid button .s { position: absolute; bottom: 1px; right: 3px; font-size: 9px; color: var(--ink-3); }
+  .ledger { display: flex; flex-direction: column; gap: 5px; }
+  .ledger .brow { display: grid; grid-template-columns: 44px 1fr 56px; gap: 8px; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .bar { height: 10px; border-radius: 4px; background: var(--panel-2); position: relative; overflow: hidden; border: 1px solid var(--line); }
+  .bar .used { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); }
+  .bar .res { position: absolute; right: 0; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, var(--warn) 0 3px, transparent 3px 6px); opacity: .6; }
+  .presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .presets button { padding: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; overflow: hidden; text-align: left; }
+  .presets button[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .presets button canvas { width: 100%; aspect-ratio: 1; display: block; image-rendering: pixelated; }
+  .presets button span { display: block; padding: 4px 6px; font-size: 11px; color: var(--ink-2); }
+  table.verify { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.verify th, table.verify td { padding: 4px 6px; text-align: center; border-bottom: 1px solid var(--line); }
+  table.verify th { color: var(--ink-3); font-weight: 500; font-size: 11px; }
+  table.verify td:first-child, table.verify th:first-child { text-align: left; font-family: var(--mono); }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .dot.ok { background: var(--ok); } .dot.bad { background: var(--hot); } .dot.meh { background: var(--warn); }
+  .statusbar { display: flex; gap: 18px; padding: 8px 14px; border-top: 1px solid var(--line); background: var(--panel-2); font-family: var(--mono); font-size: 12px; color: var(--ink-2); flex-wrap: wrap; }
+  .statusbar b { color: var(--ink); font-weight: 600; }
+  .note { font-size: 12px; color: var(--ink-3); }
+
+  /* concept 2 layers */
+  .cols2 { display: grid; grid-template-columns: 320px 1fr; min-height: 520px; }
+  .layers { display: flex; flex-direction: column; gap: 6px; }
+  .layer { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); }
+  .layer.off { opacity: .55; }
+  .layer .eye { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer; font-size: 12px; display: grid; place-items: center; }
+  .layer .eye[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .layer .t { font-weight: 600; font-size: 13px; }
+  .layer .d { font-size: 11px; color: var(--ink-3); font-family: var(--mono); }
+  .layer .kind { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .layer .props { grid-column: 2 / -1; display: flex; gap: 10px; flex-wrap: wrap; padding-top: 4px; }
+  .layer .props label { font-size: 11px; color: var(--ink-2); display: flex; flex-direction: column; gap: 2px; }
+  .layer .props input[type=range] { width: 110px; }
+
+  /* concept 3 candidates */
+  .cols3 { display: grid; grid-template-columns: 1fr 360px; min-height: 520px; }
+  .cands { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; }
+  .cands button { border: 1px solid var(--line); border-radius: 8px; padding: 4px; background: var(--panel); cursor: pointer; }
+  .cands button[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .cands canvas { width: 100%; aspect-ratio: 1; display: block; image-rendering: pixelated; }
+  .cands .sc { font-family: var(--mono); font-size: 10px; color: var(--ink-2); display: block; text-align: center; padding-top: 3px; }
+  .cands .best .sc { color: var(--ok); font-weight: 600; }
+  .rowlabel { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin: 10px 0 4px; }
+  .diffwrap { position: relative; line-height: 0; }
+  .diffwrap canvas { width: 100%; image-rendering: pixelated; border-radius: 6px; }
+
+  @media (max-width: 1000px) {
+    .cols { grid-template-columns: 1fr; }
+    .pane { border-right: 0; border-bottom: 1px solid var(--line); }
+    .cols2, .cols3 { grid-template-columns: 1fr; }
+    .cands { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <div>
+      <h1>QArt Studio — UI concepts</h1>
+      <p class="lede">Three sketches of how a tool combining bit steering, error-budget spending, module-geometry rendering and real verification might feel. The previews are driven by a mock plan generator: real QR layout (finders, timing, alignment, format, version info), simulated controllable regions, residuals and a per-block error ledger. Numbers are illustrative, not from a real solver.</p>
+    </div>
+    <nav class="toc">
+      <a href="#c1">1 · Workbench</a>
+      <a href="#c2">2 · Layer stack</a>
+      <a href="#c3">3 · Candidates &amp; verify</a>
+      <button class="btn small" id="themeBtn" type="button">Toggle theme</button>
+    </nav>
+  </header>
+
+  <!-- ===================== CONCEPT 1 ===================== -->
+  <section class="concept" id="c1">
+    <div class="intro">
+      <span class="tag">Concept 1</span>
+      <h2>Workbench: source → bits → budget → render → verify</h2>
+      <p>The pipeline is explicit. Left: what goes in. Centre: one preview with diagnostic views borrowed from QArt's "controllable pixels" and the toolkit's mismatch diff. Right: the four stages as an accordion, each showing its one key number in the header so the whole state is readable at a glance.</p>
+    </div>
+    <div class="app" id="app1">
+      <div class="topbar">
+        <span class="name">card.qart</span>
+        <div class="url"><span class="note">Payload</span><input type="text" id="c1url" value="https://example.com/#"></div>
+        <div class="chips">
+          <span class="chip" id="c1chipV">v6 · 41×41</span>
+          <span class="chip" id="c1chipE">ECL L</span>
+          <span class="chip" id="c1chipM">mask 2 · rot 0°</span>
+          <span class="chip ok" id="c1chipVerify">verify 5/5</span>
+        </div>
+        <button class="btn primary" id="c1auto" type="button">Auto-fit</button>
+      </div>
+      <div class="cols">
+        <!-- LEFT: source -->
+        <div class="pane">
+          <div>
+            <h3>Source image</h3>
+            <div class="thumb" style="margin-top:8px"><canvas id="c1src" width="123" height="123"></canvas></div>
+            <div class="seg" style="margin-top:8px" id="c1imgSeg">
+              <button aria-pressed="true" data-v="heart">Heart</button><button data-v="letter">Letter</button><button data-v="rings">Rings</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Position <output id="c1posOut">0, 0</output></label>
+            <div class="arrows">
+              <span></span><button class="btn" data-mv="0,-1">↑</button><span></span>
+              <button class="btn" data-mv="-1,0">←</button><span class="mid"></span><button class="btn" data-mv="1,0">→</button>
+              <span></span><button class="btn" data-mv="0,1">↓</button><span></span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Image size <output id="c1sizeOut">100%</output></label>
+            <input type="range" id="c1size" min="50" max="140" value="100">
+          </div>
+          <div class="field">
+            <label>QR version <output id="c1verOut">6</output></label>
+            <input type="range" id="c1ver" min="4" max="10" value="6">
+          </div>
+          <div class="field">
+            <label>Threshold <output id="c1thrOut">128</output></label>
+            <input type="range" id="c1thr" min="60" max="200" value="128">
+          </div>
+          <label class="toggle"><span>Dither (error diffusion)</span><input type="checkbox" id="c1dither"></label>
+          <div class="field">
+            <label>Weights</label>
+            <div class="seg"><button aria-pressed="true">Auto (variance)</button><button>Paint</button></div>
+            <p class="note">Paint mode lets you mark regions that must be exact and regions that may be sacrificed.</p>
+          </div>
+        </div>
+
+        <!-- CENTER: preview -->
+        <div class="center">
+          <div class="viewtabs" id="c1views">
+            <button aria-pressed="true" data-v="final">Final</button>
+            <button data-v="control">Controllable</button>
+            <button data-v="residual">Residuals</button>
+            <button data-v="budget">Blocks &amp; budget</button>
+          </div>
+          <div class="canvas-frame"><canvas id="c1main" width="123" height="123"></canvas></div>
+          <div class="legend" id="c1legend"></div>
+        </div>
+
+        <!-- RIGHT: stages -->
+        <div class="pane">
+          <details class="stage" open>
+            <summary><span class="n">1</span>Bits<span class="sub" id="c1bitsSub">71% controllable</span></summary>
+            <div class="body">
+              <div class="radio" id="c1free">
+                <label><input type="radio" name="c1free" value="pad" checked><span>Padding bytes<small>Clean decoded URL. Relies on decoders ignoring pad bytes (all do).</small></span></label>
+                <label><input type="radio" name="c1free" value="num"><span>Numeric fragment (QArt)<small>Spec-pure. URL gains a long digit fragment.</small></span></label>
+              </div>
+              <div class="field">
+                <label>Priority policy</label>
+                <select id="c1policy">
+                  <option value="hi">Detail first (high local variance)</option>
+                  <option value="lo">Flat regions first (low variance)</option>
+                  <option value="rand">Random (binary fog)</option>
+                </select>
+              </div>
+              <label class="toggle"><span>Data bits only (fast, leaves EC region as noise)</span><input type="checkbox" id="c1dataonly"></label>
+              <div class="field">
+                <label>Mask <span class="note">score = predicted match</span></label>
+                <div class="maskgrid" id="c1masks"></div>
+              </div>
+              <div class="field">
+                <label>Rotation</label>
+                <div class="seg" id="c1rot"><button aria-pressed="true" data-v="0">0°</button><button data-v="1">90°</button><button data-v="2">180°</button><button data-v="3">270°</button></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="stage" open>
+            <summary><span class="n">2</span>Budget<span class="sub" id="c1budgetSub">worst block 0/6</span></summary>
+            <div class="body">
+              <div class="field">
+                <label>Error correction level <span class="note">freedom ↔ repair</span></label>
+                <div class="seg" id="c1ecl"><button aria-pressed="true" data-v="0">L</button><button data-v="1">M</button><button data-v="2">Q</button><button data-v="3">H</button></div>
+              </div>
+              <div class="field">
+                <label>Spend on residuals <output id="c1spendOut">0 bytes/block</output></label>
+                <input type="range" id="c1spend" min="0" max="10" value="0">
+              </div>
+              <div class="field">
+                <label>Reserve for real-world damage <output id="c1resOut">3 bytes/block</output></label>
+                <input type="range" id="c1reserve" min="0" max="8" value="3">
+              </div>
+              <div class="ledger" id="c1ledger"></div>
+              <p class="note">Errors are counted per codeword byte: a second wrong bit in an already-wrong byte is free, so flips are grouped by byte.</p>
+            </div>
+          </details>
+
+          <details class="stage">
+            <summary><span class="n">3</span>Render<span class="sub" id="c1renderSub">halftone 3×3</span></summary>
+            <div class="body">
+              <div class="presets" id="c1presets"></div>
+              <div class="field">
+                <label>Colour</label>
+                <div class="seg" id="c1colour"><button aria-pressed="true" data-v="mono">Mono</button><button data-v="chroma">Keep chroma</button><button data-v="tint">Tint</button></div>
+              </div>
+              <div class="field">
+                <label>Finder style</label>
+                <div class="seg"><button aria-pressed="true">Square</button><button>Rounded</button><button>Circle</button><button>Plus</button></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="stage">
+            <summary><span class="n">4</span>Verify<span class="sub" id="c1verifySub">5/5 decoders</span></summary>
+            <div class="body">
+              <table class="verify" id="c1verify"></table>
+              <div style="display:flex; gap:8px; flex-wrap:wrap">
+                <button class="btn small" type="button">Export correction mask</button>
+                <button class="btn small" type="button">Open camera test</button>
+              </div>
+              <p class="note">Simulated here. The real tool decodes the rendered bitmap with zxing-cpp, OpenCV/WeChat and zbar under each degradation.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+      <div class="statusbar" id="c1status"></div>
+    </div>
+  </section>
+
+  <!-- ===================== CONCEPT 2 ===================== -->
+  <section class="concept" id="c2">
+    <div class="intro">
+      <span class="tag">Concept 2</span>
+      <h2>Layer stack: techniques as composable, toggleable layers</h2>
+      <p>Each technique is a layer with an eye icon, like an image editor. Switching a layer off shows exactly what it contributes: turn off <em>Bit steering</em> and the data region reverts to noise; turn off <em>Halftone</em> and only module-level detail remains; turn off <em>Budget</em> and the residual mismatches come back. Good for teaching, and for debugging why a code does not scan.</p>
+    </div>
+    <div class="app" id="app2">
+      <div class="topbar">
+        <span class="name">Layers</span>
+        <div class="chips"><span class="chip">v6 · ECL L · mask 2</span><span class="chip ok" id="c2chip">verify 5/5</span></div>
+      </div>
+      <div class="cols2">
+        <div class="pane">
+          <div class="layers" id="c2layers"></div>
+          <p class="note">Order matters only within a stage: layers are grouped by pipeline stage, so the stack can never put a render step before the solver.</p>
+        </div>
+        <div class="center">
+          <div class="canvas-frame"><canvas id="c2main" width="123" height="123"></canvas></div>
+          <div class="legend" id="c2legend"></div>
+        </div>
+      </div>
+      <div class="statusbar" id="c2status"></div>
+    </div>
+  </section>
+
+  <!-- ===================== CONCEPT 3 ===================== -->
+  <section class="concept" id="c3">
+    <div class="intro">
+      <span class="tag">Concept 3</span>
+      <h2>Candidates &amp; verify: search the free parameters, then prove it scans</h2>
+      <p>Mask, rotation, version and offset are free choices nobody searches automatically today. Here every mask × rotation is solved and scored, laid out as a contact sheet; the best is picked by default and any can be chosen. The right side is the verification view from the toolkit lineage: a grid-aligned mismatch diff of the rendered output and a decoder matrix.</p>
+    </div>
+    <div class="app" id="app3">
+      <div class="topbar">
+        <span class="name">Candidates</span>
+        <div class="chips"><span class="chip">32 solved in 140 ms</span><span class="chip" id="c3sel">best: mask 2 · 0°</span></div>
+        <div class="seg" style="margin-left:auto" id="c3sort"><button aria-pressed="true" data-v="score">Sort by match</button><button data-v="grid">Mask × rotation grid</button></div>
+      </div>
+      <div class="cols3">
+        <div class="pane">
+          <div id="c3grid"></div>
+        </div>
+        <div class="pane">
+          <h3>Verify selected</h3>
+          <div class="diffwrap"><canvas id="c3diff" width="123" height="123"></canvas></div>
+          <div class="legend"><span><i style="background:#000"></i>agree</span><span><i style="background:var(--hot)"></i>should be dark</span><span><i style="background:var(--warn)"></i>should be light</span><span><i style="background:#bbb"></i>don't care</span></div>
+          <table class="verify" id="c3verify"></table>
+          <div class="field">
+            <label>Simulated degradation</label>
+            <div class="seg wrap" id="c3deg"><button aria-pressed="true" data-v="0">Clean</button><button data-v="1">50% scale</button><button data-v="2">Blur</button><button data-v="3">JPEG 40</button><button data-v="4">Skew 20°</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="statusbar" id="c3status"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   Mock QR plan + solver + renderers. Enough to make the UI concepts
+   behave believably; not a real encoder.
+   ============================================================ */
+const ALIGN = {1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50]};
+// version -> total codewords, and [blocks, checkPerBlock] per ECL (L,M,Q,H)
+const VT = {
+  4:{bytes:100, ecl:[[1,20],[2,18],[2,26],[4,16]]},
+  5:{bytes:134, ecl:[[1,26],[2,24],[4,18],[4,22]]},
+  6:{bytes:172, ecl:[[2,18],[4,16],[4,24],[4,28]]},
+  7:{bytes:196, ecl:[[2,20],[4,18],[6,18],[5,26]]},
+  8:{bytes:242, ecl:[[2,24],[4,22],[6,22],[6,26]]},
+  9:{bytes:292, ecl:[[2,30],[5,22],[8,20],[8,24]]},
+  10:{bytes:346, ecl:[[4,18],[5,26],[8,24],[8,28]]},
+};
+const MASKS = [
+  (i,j)=>(i+j)%2===0, (i,j)=>i%2===0, (i,j)=>j%3===0, (i,j)=>(i+j)%3===0,
+  (i,j)=>(Math.floor(i/2)+Math.floor(j/3))%2===0, (i,j)=>(i*j)%2+(i*j)%3===0,
+  (i,j)=>((i*j)%2+(i*j)%3)%2===0, (i,j)=>((i*j)%3+(i+j)%2)%2===0,
+];
+const ROLE = {NONE:0, FINDER:1, TIMING:2, ALIGN:3, FORMAT:4, VERSION:5, DARK:6, DATA:7, EXTRA:8};
+const ECL_NAME = ['L','M','Q','H'];
+const ECL_CODE = [1,0,3,2];
+
+function hash(x,y,s){ let h = (x*374761393 + y*668265263 + s*982451653) >>> 0; h = (h ^ (h>>>13)) * 1274126177 >>> 0; return ((h ^ (h>>>16)) >>> 0) / 4294967296; }
+function formatBits(eclIdx, mask){ const d=(ECL_CODE[eclIdx]<<3)|mask; let rem=d; for(let i=0;i<10;i++) rem=(rem<<1)^(((rem>>>9)&1)*0x537); return ((d<<10)|rem)^0x5412; }
+function versionBits(v){ let rem=v; for(let i=0;i<12;i++) rem=(rem<<1)^(((rem>>>11)&1)*0x1F25); return (v<<12)|rem; }
+
+const planCache = new Map();
+function buildPlan(v, ecl, mask){
+  const key = v+'/'+ecl+'/'+mask; if (planCache.has(key)) return planCache.get(key);
+  const N=4*v+17, role=new Uint8Array(N*N), fixed=new Uint8Array(N*N);
+  const set=(x,y,r,d)=>{ role[y*N+x]=r; fixed[y*N+x]=d?1:0; };
+  for (const [fx,fy] of [[0,0],[N-7,0],[0,N-7]]) for(let dy=-1;dy<=7;dy++) for(let dx=-1;dx<=7;dx++){
+    const x=fx+dx,y=fy+dy; if(x<0||y<0||x>=N||y>=N) continue;
+    const inner=dx>=0&&dx<=6&&dy>=0&&dy<=6;
+    set(x,y,ROLE.FINDER, inner && (dx===0||dx===6||dy===0||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4)));
+  }
+  for(let i=8;i<N-8;i++){ set(i,6,ROLE.TIMING,i%2===0); set(6,i,ROLE.TIMING,i%2===0); }
+  for (const cx of (ALIGN[v]||[])) for (const cy of (ALIGN[v]||[])) {
+    if (role[cy*N+cx]) continue;
+    for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++) set(cx+dx,cy+dy,ROLE.ALIGN, Math.max(Math.abs(dx),Math.abs(dy))!==1);
+  }
+  const fb = formatBits(ecl, mask);
+  for (let i=0;i<15;i++){
+    const b=(fb>>i)&1;
+    if(i<6) set(8,i,ROLE.FORMAT,b); else if(i<8) set(8,i+1,ROLE.FORMAT,b); else if(i<9) set(7,8,ROLE.FORMAT,b); else set(14-i,8,ROLE.FORMAT,b);
+    if(i<8) set(N-1-i,8,ROLE.FORMAT,b); else set(8,N-15+i,ROLE.FORMAT,b);
+  }
+  set(8,N-8,ROLE.DARK,true);
+  if (v>=7){ const vb=versionBits(v); for(let i=0;i<18;i++){ const b=(vb>>i)&1, a=Math.floor(i/3), c=N-11+(i%3); set(a,c,ROLE.VERSION,b); set(c,a,ROLE.VERSION,b); } }
+  // data placement
+  const order=[];
+  for (let right=N-1; right>=1; right-=2){
+    if (right===6) right=5;
+    for (let vert=0; vert<N; vert++) for (let j=0;j<2;j++){
+      const x=right-j, upward=((right+1)&2)===0, y=upward? N-1-vert : vert;
+      if (!role[y*N+x]) order.push(y*N+x);
+    }
+  }
+  const vt=VT[v], [blocks, check]=vt.ecl[ecl], total=vt.bytes, dataBytes=total-blocks*check;
+  const nd=Math.floor(dataBytes/blocks), extra=dataBytes%blocks;
+  const sizes=[]; for(let b=0;b<blocks;b++) sizes.push(nd+(b>=blocks-extra?1:0));
+  const seqStart=[]; let acc=0; for(let b=0;b<blocks;b++){ seqStart.push(acc); acc+=sizes[b]; }
+  const byteInfo=[];
+  for(let r=0;r<=nd;r++) for(let b=0;b<blocks;b++) if(r<sizes[b]) byteInfo.push({block:b,check:false,pos:r,seq:seqStart[b]+r});
+  for(let r=0;r<check;r++) for(let b=0;b<blocks;b++) byteInfo.push({block:b,check:true,pos:r,seq:-1});
+  const bitIndex=new Int32Array(N*N).fill(-1);
+  order.forEach((p,i)=>{ if (i < total*8){ role[p]=ROLE.DATA; bitIndex[p]=i; } else role[p]=ROLE.EXTRA; });
+  const plan={v,N,ecl,mask,role,fixed,bitIndex,byteInfo,blocks,check,dataBytes,total,sizes,capacity:Math.floor(check/2)};
+  planCache.set(key, plan); return plan;
+}
+
+/* ---------- procedural source images (grayscale + colour at 3 px per module) ---------- */
+function makeImage(kind, S){
+  const c=document.createElement('canvas'); c.width=S; c.height=S; const g=c.getContext('2d');
+  g.fillStyle='#fff'; g.fillRect(0,0,S,S);
+  const rg=g.createRadialGradient(S*.5,S*.5,S*.1,S*.5,S*.5,S*.62); rg.addColorStop(0,'#cfcfcf'); rg.addColorStop(1,'#ffffff');
+  g.fillStyle=rg; g.beginPath(); g.arc(S*.5,S*.5,S*.62,0,Math.PI*2); g.fill();
+  g.fillStyle='#111';
+  if (kind==='heart'){
+    const cx=S*.5, cy=S*.52, r=S*.19;
+    g.beginPath(); g.moveTo(cx, cy+r*1.45);
+    g.bezierCurveTo(cx-r*2.4, cy-r*.2, cx-r*1.1, cy-r*1.9, cx, cy-r*.7);
+    g.bezierCurveTo(cx+r*1.1, cy-r*1.9, cx+r*2.4, cy-r*.2, cx, cy+r*1.45); g.fill();
+  } else if (kind==='letter'){
+    g.font=`900 ${Math.round(S*.78)}px ${getComputedStyle(document.body).fontFamily}`; g.textAlign='center'; g.textBaseline='middle'; g.fillText('a', S*.5, S*.55);
+  } else {
+    g.lineWidth=S*.075; g.strokeStyle='#111';
+    for (const r of [.14,.3]) { g.beginPath(); g.arc(S*.5,S*.5,S*r,0,Math.PI*2); g.stroke(); }
+    g.beginPath(); g.arc(S*.5,S*.5,S*.05,0,Math.PI*2); g.fill();
+  }
+  const d=g.getImageData(0,0,S,S).data, luma=new Float32Array(S*S);
+  for(let i=0;i<S*S;i++) luma[i]=(299*d[i*4]+587*d[i*4+1]+114*d[i*4+2])/1000;
+  return {S, luma};
+}
+const imgCache={};
+function getImage(kind,S){ const k=kind+S; return imgCache[k] || (imgCache[k]=makeImage(kind,S)); }
+
+/* ---------- solve: produce module values given plan + target ---------- */
+function solve(opts){
+  const {v=6, ecl=0, mask=2, rot=0, img='heart', size=100, dx=0, dy=0, thr=128, dither=false,
+         free='pad', policy='hi', dataOnly=false, spend=0, reserve=3, steer=true, budget=true, url='https://example.com/#'} = opts;
+  const plan=buildPlan(v,ecl,mask), N=plan.N, S=N*3;
+  const im=getImage(img, 3*Math.max(N, 41));
+  // sample target luminance per module centre (in rotated image space so fixed strips move relative to the image)
+  const scale=size/100;
+  const target=new Float32Array(N*N), weight=new Float32Array(N*N);
+  const sampleImg=(sx,sy)=>{ // sx,sy in output sub-pixel coords 0..S
+    const u=((sx - S/2)/scale)/S*im.S + im.S/2, w=((sy - S/2)/scale)/S*im.S + im.S/2;
+    const ux=Math.floor(u), uy=Math.floor(w);
+    if (ux<0||uy<0||ux>=im.S||uy>=im.S) return -1;
+    return im.luma[uy*im.S+ux];
+  };
+  // map canonical module (x,y) -> output position given rotation
+  const outPos=(x,y)=>{ switch(rot){ case 1: return [N-1-y, x]; case 2: return [N-1-x, N-1-y]; case 3: return [y, N-1-x]; default: return [x,y]; } };
+  const subLuma=(x,y,sx,sy)=>{ const [ox,oy]=outPos(x,y); return sampleImg(ox*3+sx+0.5 - dx*3, oy*3+sy+0.5 - dy*3); };
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++){
+    let sum=0,n=0; for(let sy=0;sy<3;sy++) for(let sx=0;sx<3;sx++){ const l=subLuma(x,y,sx,sy); if(l>=0){sum+=l;n++;} }
+    target[y*N+x]= n? sum/n : 255; weight[y*N+x]= n? 1 : 0;
+  }
+  // local variance for priority
+  const variance=new Float32Array(N*N);
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++){ let s=0,ss=0,n=0; for(let j=-2;j<=2;j++) for(let i=-2;i<=2;i++){ const xx=x+i,yy=y+j; if(xx<0||yy<0||xx>=N||yy>=N) continue; const t=target[yy*N+xx]; s+=t; ss+=t*t; n++; } variance[y*N+x]=ss/n-(s/n)*(s/n); }
+  // which codeword bits are fixed by the message?
+  const urlBits = 4+8+8*url.length + (free==='num' ? 4+10 : 4);
+  const fixedBytes=Math.ceil(urlBits/8);
+  const ctrl=new Uint8Array(N*N); // 1 controllable, 0 not, 2 fixed-by-message
+  const value=new Uint8Array(N*N);
+  const seedBits = (mask*7+v*13);
+  for(let p=0;p<N*N;p++){
+    if (plan.role[p]!==ROLE.DATA) { value[p]=plan.fixed[p]; continue; }
+    const bi=plan.bitIndex[p], info=plan.byteInfo[bi>>3];
+    const [ox,oy]=outPos(p%N, Math.floor(p/N));
+    let c;
+    if (!info.check && info.seq < fixedBytes) c=2;
+    else if (!info.check) c=1;
+    else if (dataOnly) c=0;
+    else { // check bits: partially controllable; detail-first policies win more of them where it matters
+      const pr = policy==='rand' ? hash(ox,oy,99) : (policy==='hi' ? Math.min(1,variance[p]/2500) : 1-Math.min(1,variance[p]/2500));
+      c = hash(ox,oy,seedBits+5) < 0.35 + 0.4*pr ? 1 : 0;
+    }
+    ctrl[p]=c;
+    const noise = (hash(ox,oy,seedBits) < 0.5 ? 1 : 0) ^ (MASKS[mask](oy,ox)?1:0) ^ (hash(ox,oy,3)<0.5?1:0);
+    if (c===1 && steer) value[p] = target[p] < thr ? 1 : 0; else value[p]=noise;
+  }
+  if (dither && steer){ // light error diffusion across controllable modules, row-major
+    const err=new Float32Array(N*N);
+    for(let y=0;y<N;y++) for(let x=0;x<N;x++){ const p=y*N+x; if(ctrl[p]!==1) continue; const t=target[p]+err[p]; const vv = t<thr?1:0; value[p]=vv; const e=t-(vv?0:255); if(x+1<N) err[p+1]+=e*7/16; if(y+1<N){ if(x>0) err[p+N-1]+=e*3/16; err[p+N]+=e*5/16; if(x+1<N) err[p+N+1]+=e*1/16; } }
+  }
+  // residuals & budget
+  const want=(p)=> target[p] < thr ? 1 : 0;
+  const perBlock=[]; for(let b=0;b<plan.blocks;b++) perBlock.push({used:0, bytes:new Map()});
+  const damaged=new Uint8Array(N*N);
+  const residualBefore=[];
+  for(let p=0;p<N*N;p++){ if(plan.role[p]!==ROLE.DATA||weight[p]===0) continue; if(value[p]!==want(p)) residualBefore.push(p); }
+  const limit = Math.max(0, Math.min(spend, plan.capacity - reserve));
+  if (budget && limit>0){
+    // group residuals by codeword byte, flip the bytes that fix the most modules first
+    const groups=new Map();
+    for (const p of residualBefore){ const bi=plan.bitIndex[p]>>3; (groups.get(bi)||groups.set(bi,[]).get(bi)).push(p); }
+    const list=[...groups.entries()].sort((a,b)=>b[1].length-a[1].length);
+    for (const [bi,ps] of list){ const blk=plan.byteInfo[bi].block; if (perBlock[blk].used>=limit) continue; perBlock[blk].used++; for(const p of ps){ value[p]=want(p); damaged[p]=1; } }
+  }
+  let residual=0, inImg=0, ctrlCount=0, dataCount=0;
+  for(let p=0;p<N*N;p++){ if(plan.role[p]!==ROLE.DATA) continue; dataCount++; if(ctrl[p]===1) ctrlCount++; if(weight[p]===0) continue; inImg++; if(value[p]!==want(p)) residual++; }
+  return {plan,N,value,ctrl,target,weight,thr,rot,outPos,subLuma,damaged,perBlock,limit,reserve,
+          stats:{ctrlFrac:ctrlCount/dataCount, matchFrac: inImg? 1-residual/inImg : 1, residual, inImg, worstUsed: Math.max(0,...perBlock.map(b=>b.used))}};
+}
+
+/* ---------- renderers ---------- */
+const BLOCK_COLORS=['--block-a','--block-b','--block-c','--block-d'];
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function render(canvas, sol, view='final', style='halftone', colour='mono'){
+  const {plan,N,value,ctrl,outPos}=sol; const S=N*3; canvas.width=S; canvas.height=S;
+  const g=canvas.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,S,S);
+  const dark='#111', light='#fff';
+  const hot=cssVar('--hot')||'#d9472b', warn=cssVar('--warn')||'#c98a12';
+  const bayer=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+  const tintFor=(l)=>{ // "photo" colouring for dots/chroma renders
+    const t=l/255; const r=Math.round(30+200*t), gg=Math.round(60+120*t), b=Math.round(120+100*(1-t)*t*2); return `rgb(${r},${gg},${b})`; };
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++){
+    const p=y*N+x, [ox,oy]=outPos(x,y), X=ox*3, Y=oy*3, role=plan.role[p], isData=role===ROLE.DATA, on=value[p]===1;
+    if (view==='control'){
+      let col = on? '#111':'#fff';
+      if (isData && ctrl[p]!==1) col = on? '#6b6b6b' : '#d4d4d4';
+      if (isData && ctrl[p]===2) col = on? '#3b4e78' : '#c9d3ea';
+      g.fillStyle=col; g.fillRect(X,Y,3,3); continue;
+    }
+    if (view==='residual'){
+      g.fillStyle = on? '#111':'#fff'; g.fillRect(X,Y,3,3);
+      if (isData && sol.weight[p]>0){ const want=sol.target[p]<sol.thr?1:0; if (want!==value[p]){ g.fillStyle = want? hot : warn; g.fillRect(X,Y,3,3);} }
+      continue;
+    }
+    if (view==='budget'){
+      if (isData){ const b=plan.byteInfo[plan.bitIndex[p]>>3]; g.fillStyle=cssVar(BLOCK_COLORS[b.block%4]); g.fillRect(X,Y,3,3); if(b.check){ g.fillStyle='rgba(0,0,0,.08)'; g.fillRect(X,Y,3,3);} if (on){ g.fillStyle='rgba(0,0,0,.45)'; g.fillRect(X+1,Y+1,1,1);} if (sol.damaged[p]){ g.fillStyle=hot; g.fillRect(X,Y,3,3);} }
+      else { g.fillStyle= on? '#333':'#eee'; g.fillRect(X,Y,3,3); }
+      continue;
+    }
+    // final
+    if (style==='plain' || !isData){
+      if (style==='rounded' && isData){ g.fillStyle='#fff'; g.fillRect(X,Y,3,3); if(on){ g.fillStyle=dark; g.beginPath(); g.arc(X+1.5,Y+1.5,1.35,0,Math.PI*2); g.fill(); } }
+      else if (style==='conditioning'){ g.fillStyle = isData ? '#808080' : (on?dark:light); if (isData && role===ROLE.DATA) g.fillStyle = on? '#000':'#fff'; g.fillRect(X,Y,3,3); }
+      else { g.fillStyle= on? dark:light; g.fillRect(X,Y,3,3); }
+      continue;
+    }
+    if (style==='halftone'){
+      for(let sy=0;sy<3;sy++) for(let sx=0;sx<3;sx++){
+        let col;
+        if (sx===1&&sy===1) col = on? dark:light;
+        else { const l=sol.subLuma(x,y,sx,sy); const lum = l<0? 255 : l; const th=(bayer[((oy*3+sy)%4)*4+((ox*3+sx)%4)]+0.5)/16*255; const isDark = lum < Math.max(th, 24) && lum < 232; col = colour==='chroma' ? (isDark? tintFor(lum*.4) : tintFor(160+lum*.37)) : (isDark? dark:light); }
+        g.fillStyle=col; g.fillRect(X+sx,Y+sy,1,1);
+      }
+      continue;
+    }
+    if (style==='dots'){
+      const l=sol.subLuma(x,y,1,1); const lum=l<0?235:l;
+      g.fillStyle = colour==='mono' ? `rgb(${lum|0},${lum|0},${lum|0})` : tintFor(lum); g.fillRect(X,Y,3,3);
+      g.fillStyle = on? 'rgba(10,10,20,.95)' : 'rgba(255,255,255,.85)'; g.fillRect(X+1,Y+1,1,1);
+      continue;
+    }
+    if (style==='rounded'){ g.fillStyle='#fff'; g.fillRect(X,Y,3,3); if(on){ g.fillStyle=dark; g.beginPath(); g.arc(X+1.5,Y+1.5,1.35,0,Math.PI*2); g.fill(); } continue; }
+    if (style==='conditioning'){ g.fillStyle = on? '#000':'#fff'; g.fillRect(X,Y,3,3); continue; }
+    g.fillStyle= on? dark:light; g.fillRect(X,Y,3,3);
+  }
+}
+function renderSource(canvas, kind){ const S=canvas.width; const im=getImage(kind, 123); const g=canvas.getContext('2d'); const id=g.createImageData(S,S); for(let y=0;y<S;y++) for(let x=0;x<S;x++){ const l=im.luma[Math.floor(y*im.S/S)*im.S+Math.floor(x*im.S/S)]; const i=(y*S+x)*4; id.data[i]=id.data[i+1]=id.data[i+2]=l; id.data[i+3]=255; } g.putImageData(id,0,0); }
+
+/* ---------- mock verification ---------- */
+const DECODERS=['zxing-cpp','opencv wechat','zbar','ios camera','android ml-kit'];
+const DEGRADE=['clean','50% scale','blur','jpeg 40','skew 20°'];
+function verifyMatrix(sol, style){
+  const headroom = (sol.plan.capacity - sol.stats.worstUsed) / Math.max(1,sol.plan.capacity); // 0..1
+  const fragile = style==='dots' ? .12 : style==='halftone' ? .06 : style==='conditioning' ? .3 : 0;
+  const rows=[];
+  DECODERS.forEach((d,di)=>{ const r=[]; DEGRADE.forEach((dg,gi)=>{ const need = 0.08 + gi*0.1 + fragile + (di===3?0.08:0) ; r.push(headroom >= need ? 'ok' : headroom >= need-0.12 ? 'meh':'bad'); }); rows.push({d, r}); });
+  return rows;
+}
+function verifyTable(el, rows){
+  el.innerHTML = '<tr><th>decoder</th>'+DEGRADE.map(d=>`<th>${d}</th>`).join('')+'</tr>' + rows.map(r=>`<tr><td>${r.d}</td>${r.r.map(s=>`<td><span class="dot ${s}"></span></td>`).join('')}</tr>`).join('');
+}
+function passCount(rows){ let ok=0; rows.forEach(r=>{ if(r.r.every(s=>s!=='bad')) ok++; }); return ok; }
+
+/* ============================================================ CONCEPT 1 */
+const st1 = {v:6, ecl:0, mask:2, rot:0, img:'heart', size:100, dx:0, dy:0, thr:128, dither:false, free:'pad', policy:'hi', dataOnly:false, spend:0, reserve:3, view:'final', style:'halftone', colour:'mono', url:'https://example.com/#'};
+const $=(id)=>document.getElementById(id);
+const PRESETS=[['halftone','Halftone 3×3'],['plain','Plain'],['dots','Dots on photo'],['rounded','Rounded'],['conditioning','Diffusion input'],['plain','Camo (soon)']];
+function segBind(id, key, onchange, parse=(x)=>x){ const el=$(id); el.addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||!b.dataset.v) return; [...el.querySelectorAll('button')].forEach(x=>x.setAttribute('aria-pressed', x===b)); st1[key]=parse(b.dataset.v); onchange(); }); }
+function legend1(view){
+  const L={ final:['<i style="background:#111"></i>module dark','<i style="background:#fff"></i>module light'],
+    control:['<i style="background:#111"></i><i style="background:#fff"></i>controllable','<i style="background:#6b6b6b"></i><i style="background:#d4d4d4"></i>uncontrollable (EC dependencies)','<i style="background:#3b4e78"></i><i style="background:#c9d3ea"></i>fixed by message'],
+    residual:['<i style="background:var(--hot)"></i>should be dark','<i style="background:var(--warn)"></i>should be light'],
+    budget:['<i style="background:var(--block-a)"></i><i style="background:var(--block-b)"></i>RS blocks (shaded = EC bytes)','<i style="background:var(--hot)"></i>byte spent from budget'] };
+  $('c1legend').innerHTML = L[view].map(s=>`<span>${s}</span>`).join('');
+}
+function update1(){
+  const sol=solve(st1);
+  render($('c1main'), sol, st1.view, st1.style, st1.colour);
+  legend1(st1.view);
+  $('c1chipV').textContent=`v${st1.v} · ${sol.N}×${sol.N}`; $('c1chipE').textContent=`ECL ${ECL_NAME[st1.ecl]}`; $('c1chipM').textContent=`mask ${st1.mask} · rot ${st1.rot*90}°`;
+  $('c1bitsSub').textContent=`${Math.round(sol.stats.ctrlFrac*100)}% controllable`;
+  $('c1budgetSub').textContent=`worst block ${sol.stats.worstUsed}/${Math.max(0,sol.plan.capacity-st1.reserve)}`;
+  $('c1renderSub').textContent=PRESETS.find(p=>p[0]===st1.style)[1].toLowerCase();
+  $('c1spendOut').textContent=`${sol.limit} bytes/block`; $('c1resOut').textContent=`${st1.reserve} bytes/block`;
+  $('c1spend').max = sol.plan.capacity;
+  // ledger
+  $('c1ledger').innerHTML = sol.perBlock.map((b,i)=>{ const cap=sol.plan.capacity; const usedPct=cap? b.used/cap*100:0; const resPct=cap? Math.min(100,st1.reserve/cap*100):0; return `<div class="brow"><span>blk ${i}</span><div class="bar"><div class="used" style="width:${usedPct}%"></div><div class="res" style="width:${resPct}%"></div></div><span>${b.used}/${cap} · r${st1.reserve}</span></div>`; }).join('');
+  // verify
+  const rows=verifyMatrix(sol, st1.style); verifyTable($('c1verify'), rows); const ok=passCount(rows);
+  $('c1verifySub').textContent=`${ok}/${DECODERS.length} decoders`; const chip=$('c1chipVerify'); chip.textContent=`verify ${ok}/${DECODERS.length}`; chip.className='chip '+(ok===5?'ok':ok>=3?'warn':'hot');
+  $('c1status').innerHTML=`<span>controllable <b>${Math.round(sol.stats.ctrlFrac*100)}%</b> of data modules</span><span>image match <b>${(sol.stats.matchFrac*100).toFixed(1)}%</b></span><span>residual modules <b>${sol.stats.residual}</b> / ${sol.stats.inImg}</span><span>free bits <b>${st1.free==='pad'?'padding':'numeric fragment'}</b></span><span>blocks <b>${sol.plan.blocks}</b> × ${sol.plan.check} EC bytes, capacity ${sol.plan.capacity} each</span>`;
+  // mask scores
+  const mg=$('c1masks'); if (!mg.children.length){ for(let m=0;m<8;m++){ const b=document.createElement('button'); b.dataset.v=m; b.innerHTML=`${m}<span class="s"></span>`; mg.appendChild(b);} const a=document.createElement('button'); a.dataset.v='auto'; a.textContent='auto'; mg.appendChild(a); mg.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.dataset.v==='auto'){ let best=0,bs=-1; for(let m=0;m<8;m++){ const s=solve({...st1,mask:m,view:'final'}).stats.matchFrac; if(s>bs){bs=s;best=m;} } st1.mask=best; } else st1.mask=+b.dataset.v; update1(); }); }
+  [...mg.querySelectorAll('button')].forEach(b=>{ if(b.dataset.v==='auto') return; const m=+b.dataset.v; b.setAttribute('aria-pressed', m===st1.mask); b.querySelector('.s').textContent = Math.round(solve({...st1,mask:m}).stats.matchFrac*100); });
+  $('c1posOut').textContent=`${st1.dx}, ${st1.dy}`; $('c1sizeOut').textContent=st1.size+'%'; $('c1verOut').textContent=st1.v; $('c1thrOut').textContent=st1.thr;
+}
+function init1(){
+  renderSource($('c1src'), st1.img);
+  $('c1imgSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b)); st1.img=b.dataset.v; renderSource($('c1src'), st1.img); update1(); });
+  document.querySelectorAll('#app1 .arrows button').forEach(b=>b.addEventListener('click',()=>{ const [x,y]=b.dataset.mv.split(',').map(Number); st1.dx+=x; st1.dy+=y; update1(); }));
+  $('c1size').addEventListener('input',e=>{ st1.size=+e.target.value; update1(); });
+  $('c1ver').addEventListener('input',e=>{ st1.v=+e.target.value; update1(); });
+  $('c1thr').addEventListener('input',e=>{ st1.thr=+e.target.value; update1(); });
+  $('c1dither').addEventListener('change',e=>{ st1.dither=e.target.checked; update1(); });
+  $('c1url').addEventListener('input',e=>{ st1.url=e.target.value; update1(); });
+  $('c1free').addEventListener('change',e=>{ st1.free=e.target.value; update1(); });
+  $('c1policy').addEventListener('change',e=>{ st1.policy=e.target.value; update1(); });
+  $('c1dataonly').addEventListener('change',e=>{ st1.dataOnly=e.target.checked; update1(); });
+  $('c1spend').addEventListener('input',e=>{ st1.spend=+e.target.value; update1(); });
+  $('c1reserve').addEventListener('input',e=>{ st1.reserve=+e.target.value; update1(); });
+  segBind('c1views','view',update1); segBind('c1rot','rot',update1,Number); segBind('c1ecl','ecl',update1,Number); segBind('c1colour','colour',update1);
+  const pr=$('c1presets'); PRESETS.forEach(([k,label],i)=>{ const b=document.createElement('button'); b.dataset.v=k; b.setAttribute('aria-pressed', k===st1.style && i===0); const c=document.createElement('canvas'); b.appendChild(c); const s=document.createElement('span'); s.textContent=label; b.appendChild(s); pr.appendChild(b); render(c, solve({...st1, v:4}), 'final', k, 'mono'); b.addEventListener('click',()=>{ [...pr.children].forEach(x=>x.setAttribute('aria-pressed',x===b)); st1.style=k; update1(); }); });
+  $('c1auto').addEventListener('click',()=>{ let best=null; for(let m=0;m<8;m++) for(let r=0;r<4;r++){ const s=solve({...st1,mask:m,rot:r}).stats.matchFrac; if(!best||s>best.s) best={s,m,r}; } st1.mask=best.m; st1.rot=best.r; [...$('c1rot').children].forEach(b=>b.setAttribute('aria-pressed', +b.dataset.v===st1.rot)); update1(); });
+  update1();
+}
+
+/* ============================================================ CONCEPT 2 */
+const st2={ steer:true, budget:true, halftone:true, dither:false, verify:true, spend:4, reserve:3 };
+const LAYERS=[
+  {key:'verify', kind:'verify', t:'Verify', d:'zxing-cpp · wechat · zbar · 5 degradations', fixed:true},
+  {key:'halftone', kind:'render', t:'Halftone 3×3', d:'centre third truthful, outer 8/9 from image', props:[['dither','Bayer → error diffusion','check']]},
+  {key:'budget', kind:'budget', t:'Spend error budget', d:'flip worst residual bytes within capacity − reserve', props:[['spend','spend / block','range',0,9],['reserve','reserve','range',0,8]]},
+  {key:'steer', kind:'bits', t:'Bit steering (QArt)', d:'GF(2) elimination per RS block, pad bytes free', props:[]},
+  {key:'source', kind:'source', t:'Source: heart.png', d:'41×41 · luma · threshold 128', fixed:true},
+];
+function update2(){
+  const sol=solve({v:6, ecl:0, mask:2, img:'heart', steer:st2.steer, budget:st2.budget, spend:st2.spend, reserve:st2.reserve, dither:st2.dither});
+  render($('c2main'), sol, 'final', st2.halftone?'halftone':'plain');
+  const rows=verifyMatrix(sol, st2.halftone?'halftone':'plain'); const ok=st2.verify? passCount(rows) : null;
+  $('c2chip').textContent = ok===null ? 'verify off' : `verify ${ok}/5`; $('c2chip').className='chip '+(ok===null?'':ok===5?'ok':ok>=3?'warn':'hot');
+  $('c2legend').innerHTML = `<span>match <b>${(sol.stats.matchFrac*100).toFixed(1)}%</b></span><span>residuals <b>${sol.stats.residual}</b></span><span>budget used (worst block) <b>${sol.stats.worstUsed}/${sol.plan.capacity}</b></span>`;
+  $('c2status').innerHTML = `<span>stack: ${LAYERS.filter(l=>l.fixed||st2[l.key]).map(l=>l.t).reverse().join(' → ')}</span>`;
+  document.querySelectorAll('#c2layers .layer').forEach(el=>{ const k=el.dataset.key; el.classList.toggle('off', !(LAYERS.find(l=>l.key===k).fixed || st2[k])); });
+}
+function init2(){
+  const host=$('c2layers');
+  LAYERS.forEach(l=>{
+    const el=document.createElement('div'); el.className='layer'; el.dataset.key=l.key;
+    const on = l.fixed || st2[l.key];
+    el.innerHTML = `<button class="eye" aria-pressed="${on}" ${l.fixed?'disabled title="always on"':''}>👁</button><div><div class="kind">${l.kind}</div><div class="t">${l.t}</div><div class="d">${l.d}</div></div><span class="note">${l.fixed?'':'⋮'}</span>`;
+    if (l.props && l.props.length){ const pr=document.createElement('div'); pr.className='props'; l.props.forEach(([k,label,type,min,max])=>{ const lab=document.createElement('label'); if(type==='check'){ lab.innerHTML=`${label}<input type="checkbox" ${st2[k]?'checked':''}>`; lab.querySelector('input').addEventListener('change',e=>{ st2[k]=e.target.checked; update2(); }); } else { lab.innerHTML=`${label} <output>${st2[k]}</output><input type="range" min="${min}" max="${max}" value="${st2[k]}">`; lab.querySelector('input').addEventListener('input',e=>{ st2[k]=+e.target.value; lab.querySelector('output').textContent=e.target.value; update2(); }); } pr.appendChild(lab); }); el.appendChild(pr); }
+    if (!l.fixed) el.querySelector('.eye').addEventListener('click', e=>{ st2[l.key]=!st2[l.key]; e.currentTarget.setAttribute('aria-pressed', st2[l.key]); update2(); });
+    host.appendChild(el);
+  });
+  update2();
+}
+
+/* ============================================================ CONCEPT 3 */
+const st3={ sort:'score', sel:null, deg:0 };
+let cands3=[];
+function update3(){
+  const base={v:6, ecl:0, img:'letter', spend:3, reserve:3, style:'halftone'};
+  if (!cands3.length){ for(let m=0;m<8;m++) for(let r=0;r<4;r++){ const sol=solve({...base,mask:m,rot:r}); cands3.push({m,r,sol,score:sol.stats.matchFrac}); } }
+  const best=cands3.reduce((a,b)=>b.score>a.score?b:a);
+  if (!st3.sel) st3.sel={m:best.m, r:best.r};
+  const host=$('c3grid'); host.innerHTML='';
+  const makeBtn=(c)=>{ const b=document.createElement('button'); b.setAttribute('aria-pressed', c.m===st3.sel.m&&c.r===st3.sel.r); if(c===best) b.classList.add('best'); const cv=document.createElement('canvas'); b.appendChild(cv); const s=document.createElement('span'); s.className='sc'; s.textContent=`m${c.m} ${c.r*90}° · ${(c.score*100).toFixed(0)}%`; b.appendChild(s); render(cv,c.sol,'final','plain'); b.addEventListener('click',()=>{ st3.sel={m:c.m,r:c.r}; update3(); }); return b; };
+  if (st3.sort==='score'){ const g=document.createElement('div'); g.className='cands'; [...cands3].sort((a,b)=>b.score-a.score).forEach(c=>g.appendChild(makeBtn(c))); host.appendChild(g); }
+  else { for(let r=0;r<4;r++){ const lab=document.createElement('div'); lab.className='rowlabel'; lab.textContent=`rotation ${r*90}° · masks 0–7`; host.appendChild(lab); const g=document.createElement('div'); g.className='cands'; cands3.filter(c=>c.r===r).forEach(c=>g.appendChild(makeBtn(c))); host.appendChild(g); } }
+  const sel=cands3.find(c=>c.m===st3.sel.m&&c.r===st3.sel.r);
+  $('c3sel').textContent=`${sel===best?'best':'selected'}: mask ${sel.m} · ${sel.r*90}° · ${(sel.score*100).toFixed(1)}%`;
+  // diff view with degradation: simulate by adding mismatches
+  const dc=$('c3diff'); render(dc, sel.sol, 'residual');
+  const g=dc.getContext('2d'); const N=sel.sol.N; const extra=[0,6,14,22,40][st3.deg];
+  g.fillStyle=cssVar('--hot'); for(let i=0;i<extra;i++){ const x=Math.floor(hash(i,st3.deg,7)*N), y=Math.floor(hash(i,st3.deg,11)*N); if (sel.sol.plan.role[y*N+x]===ROLE.DATA) g.fillRect(x*3,y*3,3,3); }
+  const rows=verifyMatrix(sel.sol,'halftone'); verifyTable($('c3verify'), rows);
+  $('c3status').innerHTML=`<span>selected residuals <b>${sel.sol.stats.residual}</b> + simulated scan damage <b>${extra}</b> modules</span><span>decoders passing <b>${passCount(rows)}/5</b></span><span>worst block <b>${sel.sol.stats.worstUsed}/${sel.sol.plan.capacity}</b></span>`;
+}
+function init3(){
+  $('c3sort').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b)); st3.sort=b.dataset.v; update3(); });
+  $('c3deg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b)); st3.deg=+b.dataset.v; update3(); });
+  update3();
+}
+
+/* ---------- boot ---------- */
+$('themeBtn').addEventListener('click',()=>{ const r=document.documentElement; const cur=r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); r.setAttribute('data-theme', cur==='dark'?'light':'dark'); update1(); update2(); cands3=[]; update3(); });
+init1(); init2(); init3();
+</script>
+</body>
+</html>

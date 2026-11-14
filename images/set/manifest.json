@@ -1,0 +1,230 @@
+[
+  {
+    "id": "pjw",
+    "file": "pjw.png",
+    "category": "portrait-bw",
+    "why": "Cox's canonical QArt test image (48px, high contrast)",
+    "source": "_downloads/pjw.png",
+    "size": [
+      48,
+      48
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "pink",
+    "file": "pink.png",
+    "category": "portrait-bw",
+    "why": "grayscale photo portrait, mid-tones",
+    "source": "220px-ArthurPink.jpg",
+    "size": [
+      220,
+      256
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "mona",
+    "file": "mona.png",
+    "category": "portrait-colour",
+    "why": "colour painting, low contrast face, famous",
+    "source": "_downloads/mona_lisa.jpg",
+    "size": [
+      500,
+      745
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "cd",
+    "file": "cd.png",
+    "category": "busy-photo-text",
+    "why": "busy cover with face and small text",
+    "source": "mbid-edd7bdc5-1fd4-4aed-9202-6c2d646680a9-36448102644_thumb250.jpg",
+    "size": [
+      250,
+      250
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "lake",
+    "file": "lake.png",
+    "category": "photo-landscape",
+    "why": "continuous tone natural photo, wide",
+    "source": "scenic-mountain-lake-surrounded-by-forest-and-dramatic-cloudy-sky-landscape-photo.jpg",
+    "size": [
+      525,
+      350
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "veggie",
+    "file": "veggie.png",
+    "category": "busy-scene",
+    "why": "3D rendered frame, many small elements, wide",
+    "source": "videoframe_167126.png",
+    "size": [
+      853,
+      480
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "painting",
+    "file": "painting.png",
+    "category": "low-contrast-texture",
+    "why": "textured painting, little luminance structure",
+    "source": "me.png",
+    "size": [
+      256,
+      256
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "bear",
+    "file": "bear.png",
+    "category": "flat-illustration",
+    "why": "flat shapes, square, mid contrast",
+    "source": "round1-grizzy-3d.png",
+    "size": [
+      1024,
+      1024
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "rockets",
+    "file": "rockets.png",
+    "category": "dark-background",
+    "why": "light subject on dark field, wide",
+    "source": "round5-star-realms.jpeg",
+    "size": [
+      1408,
+      768
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "chess",
+    "file": "chess.png",
+    "category": "cartoon-white-bg",
+    "why": "cartoon on white, outlines plus colour fills",
+    "source": "Gemini_Generated_Image_nn4pgdnn4pgdnn4p.png",
+    "size": [
+      1024,
+      1024
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "boyzone",
+    "file": "boyzone.png",
+    "category": "logo-text",
+    "why": "bold two-colour logo with large text",
+    "source": "boyzone_logo.png",
+    "size": [
+      1024,
+      1024
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "hut",
+    "file": "hut.png",
+    "category": "icon-alpha",
+    "why": "simple icon with real transparency",
+    "source": "favicon.ico",
+    "size": [
+      64,
+      64
+    ],
+    "has_alpha": true
+  },
+  {
+    "id": "grass",
+    "file": "grass.png",
+    "category": "pixel-art",
+    "why": "16x16 pixel art, exact module mapping",
+    "source": "grass_block_side.png",
+    "size": [
+      16,
+      16
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "triangle",
+    "file": "triangle.png",
+    "category": "line-art",
+    "why": "thin black lines on white, hardest render case",
+    "source": "icon.png",
+    "size": [
+      500,
+      500
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "text",
+    "file": "text.png",
+    "category": "typography",
+    "why": "bold word, tests letterform legibility at module scale",
+    "source": "synthetic",
+    "size": [
+      256,
+      256
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "ramp",
+    "file": "ramp.png",
+    "category": "gradient",
+    "why": "grey ramp plus solid square, tests dithering and threshold",
+    "source": "synthetic",
+    "size": [
+      256,
+      256
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "heart-alpha",
+    "file": "heart-alpha.png",
+    "category": "silhouette-alpha",
+    "why": "black silhouette on transparent, alpha = don't care",
+    "source": "synthetic",
+    "size": [
+      256,
+      256
+    ],
+    "has_alpha": true
+  },
+  {
+    "id": "stripes",
+    "file": "stripes.png",
+    "category": "adversarial-pattern",
+    "why": "horizontal stripes, interacts with masks and timing",
+    "source": "synthetic",
+    "size": [
+      256,
+      256
+    ],
+    "has_alpha": false
+  },
+  {
+    "id": "grey",
+    "file": "grey.png",
+    "category": "degenerate",
+    "why": "flat mid-grey, nothing to match; solver should not misbehave",
+    "source": "synthetic",
+    "size": [
+      256,
+      256
+    ],
+    "has_alpha": false
+  }
+]

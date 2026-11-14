@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QArt Studio</title>
+<style>
+  :root { --bg:#f4f1ea; --panel:#fffdf8; --panel-2:#efebe2; --ink:#1c1b18; --ink-2:#5b574e; --ink-3:#8c877b; --line:#dcd6c8;
+          --accent:#1f4e9c; --accent-ink:#fff; --hot:#d9472b; --ok:#2f8f5b; --warn:#c98a12; --mono:ui-monospace,Menlo,Consolas,monospace; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#15161a; --panel:#1d1f25; --panel-2:#24272f; --ink:#ecebe6; --ink-2:#b4b1a8; --ink-3:#7b786f; --line:#32363f; --accent:#6ea0ff; --accent-ink:#0b1a33; --hot:#ff7a5c; --ok:#5ccb8a; --warn:#e6b04a; } }
+  * { box-sizing:border-box; } html,body { margin:0; height:100%; }
+  body { background:var(--bg); color:var(--ink); font:14px/1.45 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; display:flex; flex-direction:column; min-height:100vh; }
+  h3 { margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); font-weight:600; }
+  .top { display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid var(--line); background:var(--panel-2); flex-wrap:wrap; }
+  .top .brand { font-weight:700; letter-spacing:-.01em; }
+  .top .payload { flex:1 1 320px; display:flex; align-items:center; gap:8px; }
+  .top .payload input { flex:1; min-width:0; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; } .chip { font-family:var(--mono); font-size:11px; padding:3px 8px; border-radius:999px; background:var(--panel); border:1px solid var(--line); color:var(--ink-2); }
+  .chip.ok{border-color:var(--ok);color:var(--ok)} .chip.warn{border-color:var(--warn);color:var(--warn)} .chip.hot{border-color:var(--hot);color:var(--hot)}
+  .cols { display:grid; grid-template-columns:230px 1fr 340px; flex:1; min-height:0; }
+  .pane { padding:14px; border-right:1px solid var(--line); overflow:auto; display:flex; flex-direction:column; gap:16px; }
+  .pane:last-child { border-right:0; }
+  .center { display:flex; flex-direction:column; align-items:center; gap:10px; padding:16px; overflow:auto; background:repeating-conic-gradient(var(--panel-2) 0 25%, transparent 0 50%) 0 0/20px 20px; }
+  .frame { background:#fff; padding:10px; border-radius:6px; box-shadow:0 2px 24px -10px rgba(0,0,0,.4); line-height:0; position:relative; }
+  .frame img { width:min(560px, 60vw); height:auto; image-rendering:pixelated; display:block; }
+  .frame.busy::after { content:"solving…"; position:absolute; inset:0; display:grid; place-items:center; background:rgba(255,255,255,.55); color:#333; font-size:13px; }
+  .viewtabs { display:flex; gap:2px; background:var(--panel-2); padding:3px; border-radius:8px; border:1px solid var(--line); }
+  .viewtabs button, .seg button { border:0; background:transparent; padding:5px 10px; border-radius:6px; color:var(--ink-2); cursor:pointer; font:inherit; font-size:13px; }
+  .viewtabs button[aria-pressed="true"] { background:var(--panel); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:7px; overflow:hidden; background:var(--panel); }
+  .seg button { border-radius:0; border-right:1px solid var(--line); font-size:12px; } .seg button:last-child { border-right:0; }
+  .seg button[aria-pressed="true"] { background:var(--accent); color:var(--accent-ink); }
+  .field { display:flex; flex-direction:column; gap:4px; } .field label { font-size:12px; color:var(--ink-2); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .field label output { font-family:var(--mono); color:var(--ink); } .field.big label { font-size:13px; color:var(--ink); font-weight:600; }
+  .hint { font-size:11px; color:var(--ink-3); }
+  input[type=range] { width:100%; accent-color:var(--accent); margin:0; } input[type=range].big { height:28px; }
+  input[type=text], input[type=number], select { font:inherit; font-size:13px; padding:6px 8px; border-radius:6px; border:1px solid var(--line); background:var(--panel); color:var(--ink); }
+  input[type=number] { width:80px; } input[type=color] { width:34px; height:26px; padding:0; border:1px solid var(--line); border-radius:6px; background:var(--panel); }
+  .btn { font:inherit; font-size:13px; padding:6px 11px; border-radius:7px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer; }
+  .btn.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); } .btn.small { font-size:12px; padding:4px 8px; }
+  .toggle { display:flex; justify-content:space-between; align-items:center; font-size:13px; gap:8px; } .toggle input { accent-color:var(--accent); }
+  .gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .gallery button { padding:0; border:1px solid var(--line); border-radius:6px; background:#fff; aspect-ratio:1; overflow:hidden; cursor:pointer; }
+  .gallery button img { width:100%; height:100%; object-fit:contain; display:block; } .gallery button[aria-pressed="true"] { outline:2px solid var(--accent); outline-offset:-1px; }
+  details.adv { border:1px solid var(--line); border-radius:10px; overflow:hidden; } details.adv > summary { list-style:none; cursor:pointer; padding:8px 12px; background:var(--panel-2); font-weight:600; font-size:13px; display:flex; justify-content:space-between; }
+  details.adv > summary::-webkit-details-marker { display:none; } details.adv > summary .sub { font-weight:400; font-family:var(--mono); font-size:11px; color:var(--ink-3); }
+  details.adv .body { padding:10px 12px; display:flex; flex-direction:column; gap:10px; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; } .row > * { flex:0 0 auto; }
+  .arrows { display:grid; grid-template-columns:repeat(3,28px); gap:3px; } .arrows button { height:28px; padding:0; }
+  table.verify { border-collapse:collapse; font-size:12px; width:100%; } table.verify th, table.verify td { padding:3px 6px; text-align:center; border-bottom:1px solid var(--line); }
+  table.verify th { color:var(--ink-3); font-weight:500; font-size:11px; } table.verify td:first-child, table.verify th:first-child { text-align:left; font-family:var(--mono); }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--line); } .dot.ok{background:var(--ok)} .dot.bad{background:var(--hot)}
+  .stats { display:flex; gap:14px; flex-wrap:wrap; font-family:var(--mono); font-size:12px; color:var(--ink-2); padding:8px 16px; border-top:1px solid var(--line); background:var(--panel-2); }
+  .stats b { color:var(--ink); font-weight:600; } .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px; }
+  .ledger .brow { display:grid; grid-template-columns:40px 1fr 60px; gap:8px; align-items:center; font-family:var(--mono); font-size:11px; color:var(--ink-2); }
+  .bar { height:9px; border-radius:4px; background:var(--panel-2); position:relative; overflow:hidden; border:1px solid var(--line); } .bar .used { position:absolute; left:0; top:0; bottom:0; background:var(--accent); } .bar .res { position:absolute; right:0; top:0; bottom:0; background:repeating-linear-gradient(135deg,var(--warn) 0 3px,transparent 3px 6px); opacity:.6; }
+  .err { color:var(--hot); font-size:12px; white-space:pre-wrap; }
+  @media (max-width:1000px) { .cols { grid-template-columns:1fr; } .pane { border-right:0; border-bottom:1px solid var(--line); } }
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="brand">QArt Studio</span>
+  <div class="payload"><span class="hint">Payload</span><input type="text" id="payload" value="https://example.com/#" spellcheck="false"></div>
+  <div class="chips" id="chips"></div>
+  <button class="btn" id="autofit" title="Search all masks and rotations for the best image match">Auto-fit</button>
+  <button class="btn primary" id="download">Download PNG</button>
+</div>
+<div class="cols">
+  <!-- LEFT: image -->
+  <div class="pane">
+    <div><h3>Image</h3><div class="gallery" id="gallery"></div></div>
+    <div class="row"><input type="file" id="upload" accept="image/*" style="font-size:12px;max-width:200px"></div>
+    <div class="field"><label>Image scale <output id="scaleOut">100%</output></label><input type="range" id="scale" min="30" max="160" value="100"></div>
+    <div class="field"><label>Position <output id="posOut">0, 0</output></label>
+      <div class="arrows"><span></span><button class="btn" data-mv="0,-1">↑</button><span></span><button class="btn" data-mv="-1,0">←</button><button class="btn small" id="poscenter" title="centre">·</button><button class="btn" data-mv="1,0">→</button><span></span><button class="btn" data-mv="0,1">↓</button><span></span></div></div>
+    <div class="field"><label>Rotation</label><div class="seg" id="rotation"><button data-v="0" aria-pressed="true">0°</button><button data-v="1">90°</button><button data-v="2">180°</button><button data-v="3">270°</button></div><span class="hint">Moves the fixed message strip relative to the image.</span></div>
+    <div class="field"><label>Threshold <output id="thrOut">auto</output></label><input type="range" id="thr" min="0" max="255" value="0"><span class="hint">0 = Otsu automatic.</span></div>
+    <div class="field"><label>Contrast <output id="contrastOut">1.0</output></label><input type="range" id="contrast" min="50" max="250" value="100"></div>
+    <div class="field"><label>Brightness <output id="brightOut">1.0</output></label><input type="range" id="bright" min="50" max="200" value="100"></div>
+  </div>
+
+  <!-- CENTRE: preview -->
+  <div class="center">
+    <div class="viewtabs" id="views"><button data-v="final" aria-pressed="true">Final</button><button data-v="control">Controllable</button><button data-v="residual">Residuals</button></div>
+    <div class="frame" id="frame"><img id="preview" alt="QR preview" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></div>
+    <div class="err" id="err"></div>
+    <div class="card" style="width:min(560px,60vw)">
+      <div class="row" style="justify-content:space-between"><h3 style="margin:0">Scannability check</h3><label class="toggle hint"><span>auto</span><input type="checkbox" id="autoverify" checked></label><button class="btn small" id="verifyNow">Check now</button></div>
+      <table class="verify" id="verify"></table>
+      <div class="hint" id="verifyNote">Real decoders on the rendered image under six degradations. OpenCV's own detector misses some valid plain codes; weight zxing, WeChat and zbar.</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: controls -->
+  <div class="pane">
+    <div class="field big"><label>Size <output id="verOut">v8 · 49×49</output></label><input class="big" type="range" id="version" min="2" max="20" value="8"><span class="hint" id="verHint"></span></div>
+    <div class="field big"><label>Scannability <output id="scanOut">balanced</output></label><input class="big" type="range" id="scan" min="0" max="100" value="60"><span class="hint" id="scanHint">Left: more picture, less margin. Right: bigger module centres, no error budget spent.</span></div>
+    <div class="field"><label>Style</label><div class="seg" id="style"><button data-v="halftone" aria-pressed="true">Halftone</button><button data-v="plain">Plain</button><button data-v="dots">Dots on photo</button></div></div>
+    <div class="field"><label>Colour</label><div class="seg" id="colour"><button data-v="mono">Mono</button><button data-v="brand">Brand</button><button data-v="chroma" aria-pressed="true">From image</button></div>
+      <div class="row" id="colourRow"><label class="hint">dark <input type="color" id="darkColour" value="#000000"></label><label class="hint">light <input type="color" id="lightColour" value="#ffffff"></label><label class="hint" id="tintLabel">tint <input type="range" id="tint" min="0" max="100" value="50" style="width:90px"></label></div></div>
+
+    <details class="adv"><summary>Encoding <span class="sub" id="encSub"></span></summary><div class="body">
+      <div class="field"><label>Error correction <span class="hint">freedom ↔ repair</span></label><div class="seg" id="ecl"><button data-v="L" aria-pressed="true">L</button><button data-v="M">M</button><button data-v="Q">Q</button><button data-v="H">H</button></div></div>
+      <div class="field"><label>Free bits</label><div class="seg" id="free"><button data-v="pad" aria-pressed="true">Padding (clean URL)</button><button data-v="num">Numeric fragment</button></div></div>
+      <div class="field"><label>Mask <output id="maskOut">auto</output></label><div class="seg" id="mask"><button data-v="auto" aria-pressed="true">auto</button><button data-v="0">0</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button><button data-v="7">7</button></div></div>
+      <div class="field"><label>Priority policy</label><select id="policy"><option value="hi">Detail first (high variance)</option><option value="lo">Flat regions first</option><option value="rand">Random (binary fog)</option></select></div>
+      <label class="toggle"><span>Data bits only (skip EC bits)</span><input type="checkbox" id="dataonly"></label>
+      <label class="toggle"><span>Steer bits (off = plain encode)</span><input type="checkbox" id="steer" checked></label>
+      <label class="toggle"><span>Module-level dither</span><input type="checkbox" id="dither"></label>
+      <div class="field"><label>Outside the image</label><div class="seg" id="outside"><button data-v="white" aria-pressed="true">Drive light</button><button data-v="free">Leave free</button></div></div>
+    </div></details>
+
+    <details class="adv"><summary>Error budget <span class="sub" id="budSub"></span></summary><div class="body">
+      <div class="field"><label>Spend per block <output id="spendOut">0</output></label><input type="range" id="spend" min="0" max="9" value="0"></div>
+      <div class="field"><label>Reserve <output id="reserveOut">3</output></label><input type="range" id="reserve" min="0" max="10" value="3"></div>
+      <div class="ledger" id="ledger"></div>
+      <span class="hint">Errors are counted per codeword byte per block; a second wrong bit in a wrong byte is free.</span>
+    </div></details>
+
+    <details class="adv"><summary>Render <span class="sub" id="renSub"></span></summary><div class="body">
+      <div class="field"><label>Module size (px) <output id="pxOut">12</output></label><input type="range" id="px" min="6" max="30" value="12"></div>
+      <div class="field"><label>Quiet zone (modules) <output id="quietOut">4</output></label><input type="range" id="quiet" min="1" max="6" value="4"></div>
+      <div id="htOpts">
+        <div class="field"><label>Centre width <output id="cfOut">0.67</output></label><input type="range" id="cf" min="20" max="100" value="67"></div>
+        <div class="field"><label>Centre opacity <output id="caOut">1.00</output></label><input type="range" id="ca" min="40" max="100" value="100"></div>
+        <div class="field"><label>Surround contrast <output id="scOut">1.00</output></label><input type="range" id="sc" min="20" max="100" value="100"></div>
+        <div class="field"><label>Dither cells per module <output id="cellsOut">6</output></label><input type="range" id="cells" min="2" max="10" value="6"></div>
+        <div class="field"><label>Dither</label><div class="seg" id="hdither"><button data-v="fs" aria-pressed="true">Error diffusion</button><button data-v="bayer">Ordered</button><button data-v="none">Threshold</button></div></div>
+      </div>
+      <div id="dotOpts" hidden>
+        <div class="field"><label>Dot size <output id="dsOut">0.45</output></label><input type="range" id="ds" min="20" max="100" value="45"></div>
+        <div class="field"><label>Light dot opacity <output id="dlOut">0.85</output></label><input type="range" id="dl" min="30" max="100" value="85"></div>
+        <div class="field"><label>Dark dot opacity <output id="ddOut">1.00</output></label><input type="range" id="dd" min="30" max="100" value="100"></div>
+        <div class="field"><label>Photo dimming <output id="dimOut">0</output></label><input type="range" id="dim" min="-60" max="60" value="0"></div>
+        <label class="toggle"><span>Grayscale photo</span><input type="checkbox" id="dgray"></label>
+      </div>
+      <div class="field"><label>Export module size (px) <output id="expOut">24</output></label><input type="range" id="exp" min="8" max="48" value="24"></div>
+    </div></details>
+  </div>
+</div>
+<div class="stats" id="stats"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const S = {
+  image_id: 'mona', view: 'final', dialCustom: false, colourMode: 'chroma', exportPx: 24,
+  o: { payload: 'https://example.com/#', version: 8, ecl: 'L', mask: 'auto', rotation: 0, free: 'pad', steer: true, policy: 'hi', data_only: false,
+       dither: false, outside: 'white', threshold: 'otsu', contrast: 1.0, brightness: 1.0, scale: 1.0, dx: 0, dy: 0,
+       spend: 0, reserve: 3, style: 'halftone', halftone_dither: 'fs', halftone_centre_frac: 0.67, halftone_centre_alpha: 1.0, halftone_contrast: 1.0, halftone_cells: 6,
+       colour_mode: 'chroma', dark_colour: '#000000', light_colour: '#ffffff', light_tint: 0.5,
+       dot_scale: 0.45, dot_light_alpha: 0.85, dot_dark_alpha: 1.0, dot_grayscale: false, dot_dimming: 0.0, module_px: 12, quiet: 4 },
+  last: null, capacity: 9, seq: 0, vseq: 0, meta: { decoders: ['zxing','wechat','opencv','zbar'], degradations: ['clean','scale50','scale30','blur','jpeg40','skew'] },
+};
+
+/* ---------- helpers ---------- */
+function seg(id, onchange) { const el = $(id); el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !('v' in b.dataset)) return; setSeg(id, b.dataset.v); onchange(b.dataset.v); }); }
+function setSeg(id, v) { [...$(id).querySelectorAll('button')].forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v) === String(v))); }
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+const fmt = (x, d = 2) => (x === null || x === undefined || Number.isNaN(x)) ? '–' : Number(x).toFixed(d);
+
+/* ---------- scannability dial → options ---------- */
+function applyDial() {
+  const s = +$('scan').value / 100;
+  const o = S.o;
+  const cap = S.capacity, maxSpend = Math.max(0, cap - o.reserve);
+  o.spend = Math.round((1 - s) * maxSpend);
+  if (o.style === 'halftone') { o.halftone_centre_frac = +(0.3 + 0.6 * s).toFixed(2); o.halftone_centre_alpha = +(0.7 + 0.3 * s).toFixed(2); o.halftone_contrast = +(1.0 - 0.3 * s).toFixed(2); }
+  if (o.style === 'dots') { o.dot_scale = +(0.3 + 0.5 * s).toFixed(2); o.dot_light_alpha = +(0.6 + 0.4 * s).toFixed(2); o.dot_dark_alpha = +(0.7 + 0.3 * s).toFixed(2); }
+  $('scanOut').textContent = s < 0.25 ? 'artistic' : s < 0.5 ? 'leaning picture' : s < 0.75 ? 'balanced' : 'robust';
+  S.dialCustom = false;
+  syncAdvanced();
+}
+function markCustom() { S.dialCustom = true; $('scanOut').textContent = 'custom'; }
+
+/* ---------- advanced ↔ state sync ---------- */
+function syncAdvanced() {
+  const o = S.o;
+  $('spend').value = o.spend; $('spend').max = Math.max(0, S.capacity); $('spendOut').textContent = `${o.spend} of ${S.capacity}`;
+  $('reserve').value = o.reserve; $('reserveOut').textContent = o.reserve;
+  $('cf').value = Math.round(o.halftone_centre_frac * 100); $('cfOut').textContent = fmt(o.halftone_centre_frac);
+  $('ca').value = Math.round(o.halftone_centre_alpha * 100); $('caOut').textContent = fmt(o.halftone_centre_alpha);
+  $('sc').value = Math.round(o.halftone_contrast * 100); $('scOut').textContent = fmt(o.halftone_contrast);
+  $('cells').value = o.halftone_cells; $('cellsOut').textContent = o.halftone_cells;
+  $('ds').value = Math.round(o.dot_scale * 100); $('dsOut').textContent = fmt(o.dot_scale);
+  $('dl').value = Math.round(o.dot_light_alpha * 100); $('dlOut').textContent = fmt(o.dot_light_alpha);
+  $('dd').value = Math.round(o.dot_dark_alpha * 100); $('ddOut').textContent = fmt(o.dot_dark_alpha);
+  $('dim').value = Math.round(o.dot_dimming * 100); $('dimOut').textContent = fmt(o.dot_dimming);
+  $('px').value = o.module_px; $('pxOut').textContent = o.module_px; $('quiet').value = o.quiet; $('quietOut').textContent = o.quiet;
+  $('htOpts').hidden = o.style !== 'halftone'; $('dotOpts').hidden = o.style !== 'dots';
+  $('verOut').textContent = `v${o.version} · ${4 * o.version + 17}×${4 * o.version + 17}`;
+  $('encSub').textContent = `ECL ${o.ecl} · ${o.free} · mask ${o.mask}`;
+  $('budSub').textContent = `${o.spend}/${S.capacity} · reserve ${o.reserve}`;
+  $('renSub').textContent = o.style === 'halftone' ? `centre ${fmt(o.halftone_centre_frac)} · ${o.module_px}px` : o.style === 'dots' ? `dot ${fmt(o.dot_scale)} · ${o.module_px}px` : `${o.module_px}px`;
+  $('tintLabel').style.visibility = S.colourMode === 'chroma' ? 'visible' : 'hidden';
+}
+
+/* ---------- rendering ---------- */
+let busyTimer;
+async function render() {
+  const seq = ++S.seq;
+  const o = { ...S.o };
+  if (o.threshold === 0) o.threshold = 'otsu';
+  busyTimer = setTimeout(() => $('frame').classList.add('busy'), 300);
+  try {
+    const r = await fetch('/api/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ image_id: S.image_id, options: o, views: ['final', 'control', 'residual'] }) });
+    if (seq !== S.seq) return;
+    if (!r.ok) { $('err').textContent = (await r.json()).detail || r.statusText; return; }
+    const d = await r.json();
+    if (seq !== S.seq) return;
+    $('err').textContent = '';
+    S.last = d;
+    S.capacity = d.stats.capacity;
+    if (S.o.mask === 'auto') $('maskOut').textContent = `auto → ${d.stats.mask}`; else $('maskOut').textContent = S.o.mask;
+    showView();
+    showStats(d);
+    if (!S.dialCustom) { /* capacity may have changed with version/ECL: re-derive spend from the dial */
+      const s = +$('scan').value / 100; const want = Math.round((1 - s) * Math.max(0, S.capacity - S.o.reserve));
+      if (want !== S.o.spend) { S.o.spend = want; syncAdvanced(); render(); return; }
+    }
+    syncAdvanced();
+    if ($('autoverify').checked) verify();
+  } catch (e) { if (seq === S.seq) $('err').textContent = String(e); }
+  finally { if (seq === S.seq) { clearTimeout(busyTimer); $('frame').classList.remove('busy'); } }
+}
+const renderSoon = debounce(render, 180);
+function showView() { if (!S.last) return; $('preview').src = S.last[S.view] || S.last.final; }
+function showStats(d) {
+  const s = d.stats;
+  const bud = s.budget_used.map((u, i) => `blk${i} ${u}/${s.capacity}`).join(' ');
+  $('stats').innerHTML = `<span>v<b>${s.version}</b> ${s.N}×${s.N}</span><span>mask <b>${s.mask}</b> rot <b>${s.rotation * 90}°</b></span><span>match <b>${fmt(s.match * 100, 1)}%</b> (pre-budget ${fmt(s.match_pre_budget * 100, 1)}%)</span><span>controllable <b>${fmt(s.controlled_frac * 100, 0)}%</b></span><span>budget <b>${Math.max(...s.budget_used)}/${s.capacity}</b> per block</span><span>fidelity <b>${fmt(s.fidelity_module)}</b>/<b>${fmt(s.fidelity_sub)}</b></span><span>threshold <b>${s.threshold}</b></span><span>${s.solve_cached ? 'solve cached' : 'solved ' + fmt(s.t_solve, 2) + 's'} · render ${fmt(s.t_finish, 2)}s</span><span title="${d.expected}">decodes to <b>${d.expected.length > 48 ? d.expected.slice(0, 44) + '…' : d.expected}</b></span>`;
+  $('ledger').innerHTML = s.budget_used.map((u, i) => `<div class="brow"><span>blk ${i}</span><div class="bar"><div class="used" style="width:${s.capacity ? u / s.capacity * 100 : 0}%"></div><div class="res" style="width:${s.capacity ? Math.min(100, S.o.reserve / s.capacity * 100) : 0}%"></div></div><span>${u}/${s.capacity}</span></div>`).join('');
+  $('chips').innerHTML = `<span class="chip">v${s.version} · ${s.N}×${s.N}</span><span class="chip">ECL ${s.ecl}</span><span class="chip">mask ${s.mask}</span><span class="chip">match ${fmt(s.match * 100, 0)}%</span><span class="chip" id="vchip">verify …</span>`;
+}
+
+/* ---------- verification ---------- */
+async function verify() {
+  const vseq = ++S.vseq;
+  const o = { ...S.o }; if (o.threshold === 0) o.threshold = 'otsu';
+  const tbl = $('verify');
+  tbl.innerHTML = `<tr><th>decoder</th>${S.meta.degradations.map(g => `<th>${g}</th>`).join('')}</tr>` + S.meta.decoders.map(d => `<tr><td>${d}</td>${S.meta.degradations.map(() => `<td><span class="dot"></span></td>`).join('')}</tr>`).join('');
+  try {
+    const r = await fetch('/api/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ image_id: S.image_id, options: o }) });
+    if (vseq !== S.vseq) return;
+    const v = await r.json();
+    if (vseq !== S.vseq) return;
+    const rows = S.meta.decoders.map(d => `<tr><td>${d}</td>${S.meta.degradations.map(g => `<td><span class="dot ${v.table[g][d] ? 'ok' : 'bad'}"></span></td>`).join('')}</tr>`).join('');
+    tbl.innerHTML = `<tr><th>decoder</th>${S.meta.degradations.map(g => `<th>${g}</th>`).join('')}</tr>${rows}`;
+    const core = ['zxing', 'wechat', 'zbar'].filter(d => S.meta.decoders.includes(d));
+    let ok = 0, n = 0; for (const d of core) for (const g of S.meta.degradations) { n++; if (v.table[g][d]) ok++; }
+    const p = n ? ok / n : 0; const chip = $('vchip'); if (chip) { chip.textContent = `verify ${fmt(p * 100, 0)}%`; chip.className = 'chip ' + (p >= 0.95 ? 'ok' : p >= 0.75 ? 'warn' : 'hot'); }
+    $('verifyNote').textContent = `${ok}/${n} cells pass on zxing, WeChat and zbar; OpenCV's detector shown for reference. Decodes to: ${v.expected.length > 60 ? v.expected.slice(0, 56) + '…' : v.expected}`;
+  } catch (e) { $('verifyNote').textContent = 'verify failed: ' + e; }
+}
+
+/* ---------- wiring ---------- */
+function bindRange(id, outId, key, scale = 1, dec = 2, custom = false) {
+  $(id).addEventListener('input', e => { const v = +e.target.value / scale; S.o[key] = v; $(outId).textContent = dec === 0 ? v : fmt(v, dec); if (custom) markCustom(); renderSoon(); });
+}
+$('payload').addEventListener('input', e => { S.o.payload = e.target.value; renderSoon(); });
+$('version').addEventListener('input', e => { S.o.version = +e.target.value; $('verOut').textContent = `v${S.o.version} · ${4 * S.o.version + 17}×${4 * S.o.version + 17}`; renderSoon(); });
+$('scan').addEventListener('input', () => { applyDial(); renderSoon(); });
+seg('style', v => { S.o.style = v; if (!S.dialCustom) applyDial(); syncAdvanced(); renderSoon(); });
+seg('colour', v => { S.colourMode = v; S.o.colour_mode = v === 'chroma' ? 'chroma' : 'mono'; if (v === 'mono') { S.o.dark_colour = '#000000'; S.o.light_colour = '#ffffff'; $('darkColour').value = '#000000'; $('lightColour').value = '#ffffff'; } syncAdvanced(); renderSoon(); });
+$('darkColour').addEventListener('input', e => { S.o.dark_colour = e.target.value; if (S.colourMode === 'mono') { S.colourMode = 'brand'; setSeg('colour', 'brand'); } renderSoon(); });
+$('lightColour').addEventListener('input', e => { S.o.light_colour = e.target.value; if (S.colourMode === 'mono') { S.colourMode = 'brand'; setSeg('colour', 'brand'); } renderSoon(); });
+$('tint').addEventListener('input', e => { S.o.light_tint = +e.target.value / 100; renderSoon(); });
+seg('rotation', v => { S.o.rotation = +v; renderSoon(); });
+seg('ecl', v => { S.o.ecl = v; renderSoon(); });
+seg('free', v => { S.o.free = v; renderSoon(); });
+seg('mask', v => { S.o.mask = v === 'auto' ? 'auto' : +v; renderSoon(); });
+seg('outside', v => { S.o.outside = v; renderSoon(); });
+seg('hdither', v => { S.o.halftone_dither = v; renderSoon(); });
+$('policy').addEventListener('change', e => { S.o.policy = e.target.value; renderSoon(); });
+$('dataonly').addEventListener('change', e => { S.o.data_only = e.target.checked; renderSoon(); });
+$('steer').addEventListener('change', e => { S.o.steer = e.target.checked; renderSoon(); });
+$('dither').addEventListener('change', e => { S.o.dither = e.target.checked; renderSoon(); });
+$('dgray').addEventListener('change', e => { S.o.dot_grayscale = e.target.checked; renderSoon(); });
+bindRange('scale', 'scaleOut', 'scale', 100, 2); $('scale').addEventListener('input', e => $('scaleOut').textContent = e.target.value + '%');
+bindRange('contrast', 'contrastOut', 'contrast', 100, 2); bindRange('bright', 'brightOut', 'brightness', 100, 2);
+$('thr').addEventListener('input', e => { const v = +e.target.value; S.o.threshold = v === 0 ? 'otsu' : v; $('thrOut').textContent = v === 0 ? 'auto' : v; renderSoon(); });
+bindRange('spend', 'spendOut', 'spend', 1, 0, true); bindRange('reserve', 'reserveOut', 'reserve', 1, 0, true);
+bindRange('cf', 'cfOut', 'halftone_centre_frac', 100, 2, true); bindRange('ca', 'caOut', 'halftone_centre_alpha', 100, 2, true); bindRange('sc', 'scOut', 'halftone_contrast', 100, 2, true);
+bindRange('cells', 'cellsOut', 'halftone_cells', 1, 0);
+bindRange('ds', 'dsOut', 'dot_scale', 100, 2, true); bindRange('dl', 'dlOut', 'dot_light_alpha', 100, 2, true); bindRange('dd', 'ddOut', 'dot_dark_alpha', 100, 2, true); bindRange('dim', 'dimOut', 'dot_dimming', 100, 2);
+bindRange('px', 'pxOut', 'module_px', 1, 0); bindRange('quiet', 'quietOut', 'quiet', 1, 0);
+$('exp').addEventListener('input', e => { S.exportPx = +e.target.value; $('expOut').textContent = S.exportPx; });
+document.querySelectorAll('.arrows button[data-mv]').forEach(b => b.addEventListener('click', () => { const [x, y] = b.dataset.mv.split(',').map(Number); S.o.dx += x; S.o.dy += y; $('posOut').textContent = `${S.o.dx}, ${S.o.dy}`; renderSoon(); }));
+$('poscenter').addEventListener('click', () => { S.o.dx = 0; S.o.dy = 0; $('posOut').textContent = '0, 0'; renderSoon(); });
+$('views').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; setSeg('views', b.dataset.v); S.view = b.dataset.v; showView(); });
+$('verifyNow').addEventListener('click', verify);
+$('autofit').addEventListener('click', async () => { const keep = { mask: S.o.mask, rotation: S.o.rotation }; S.o.mask = 'auto'; S.o.rotation = 'auto'; await render(); if (S.last) { S.o.mask = S.last.stats.mask; S.o.rotation = S.last.stats.rotation; setSeg('mask', S.o.mask); setSeg('rotation', S.o.rotation); $('maskOut').textContent = S.o.mask; syncAdvanced(); } });
+$('download').addEventListener('click', async () => {
+  const o = { ...S.o, module_px: S.exportPx }; if (o.threshold === 0) o.threshold = 'otsu';
+  const r = await fetch('/api/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ image_id: S.image_id, options: o, views: ['final'] }) });
+  const d = await r.json(); const a = document.createElement('a'); a.href = d.final; a.download = `qart-${S.image_id}-v${S.o.version}-${S.o.style}.png`; a.click();
+});
+$('upload').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return; const fd = new FormData(); fd.append('file', f);
+  const r = await fetch('/api/upload', { method: 'POST', body: fd }); const d = await r.json(); if (!r.ok) { $('err').textContent = d.detail; return; }
+  await loadGallery(); selectImage(d.id);
+});
+
+/* ---------- gallery ---------- */
+async function loadGallery() {
+  const imgs = await (await fetch('/api/images')).json();
+  const g = $('gallery'); g.innerHTML = '';
+  for (const im of imgs) {
+    const b = document.createElement('button'); b.dataset.id = im.id; b.title = `${im.id} · ${im.category}`; b.setAttribute('aria-pressed', im.id === S.image_id);
+    const img = document.createElement('img'); img.alt = im.id; b.appendChild(img); g.appendChild(b);
+    b.addEventListener('click', () => selectImage(im.id));
+    fetch(`/api/thumb/${encodeURIComponent(im.id)}`).then(r => r.json()).then(d => img.src = d.png);
+  }
+}
+function selectImage(id) { S.image_id = id; [...$('gallery').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.id === id)); render(); }
+
+/* ---------- boot ---------- */
+(async () => {
+  try { S.meta = await (await fetch('/api/meta')).json(); } catch {}
+  await loadGallery();
+  applyDial();
+  render();
+})();
+</script>
+</body>
+</html>
